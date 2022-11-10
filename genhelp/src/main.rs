@@ -94,6 +94,15 @@ fn main() {
         None => usage(),
     };
 
+    match bqn_path.try_exists() {
+        Ok(true) => (),
+        _ => {
+            println!("BQN repository not found or access denied.");
+            println!("Maybe run `git submodule update --init --recursive`");
+            std::process::exit(1);
+        }
+    }
+
     let output = match args.nth(0) {
         Some(out) => PathBuf::from(out),
         None => usage(),

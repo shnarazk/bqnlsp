@@ -14,7 +14,11 @@ Run `make install` to build the server and the resources it needs to directory `
 
 ## How to use
 
-See the documentation for [nvim-lspconfig](item/editors/neovim/nvim-lspconfig/README.md) or [vscode](item/editors/vscode/README.md).
+Build the project with `make install`.
+
+Add the `bqnlsp` executable in `$PATH`. The executable is `output/bqnlsp`, created by running `make install`.
+
+See the documentation for [nvim-lspconfig](item/editors/neovim/nvim-lspconfig/README.md) or [vscode](item/editors/vscode/README.md) to see how to set up an editor to use it with.
 
 ## Demo
 

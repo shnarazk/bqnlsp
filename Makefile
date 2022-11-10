@@ -12,16 +12,17 @@ install: target/debug/bqnlsp ${HELP_FILES}
 	cp $(shell find target/debug -name libcbqn.so | head -n1) ${PREFIX}
 
 clean:
+	-rm -rf ${PREFIX}
 	-rm -rf help
 	-rm -rf BQN
 
-BQN:
+BQN/src/c.bqn:
 	git submodule update --init --recursive
 
 target/debug/bqnlsp: $(wildcard lsp/src/*.rs)
 	cargo build --manifest-path=lsp/Cargo.toml
 
-${HELP_FILES}: BQN
+${HELP_FILES}: BQN/src/c.bqn
 	cargo run --release --bin genhelp ./BQN ./help
 
 .PHONY: install

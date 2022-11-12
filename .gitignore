@@ -1,5 +1,5 @@
 target/
-help/
+lsp/src/help/*.md
 BQN/
 output/
 editors/vscode/node_modules

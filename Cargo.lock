@@ -119,8 +119,8 @@ dependencies = [
 
 [[package]]
 name = "cbqn-sys"
-version = "0.0.5"
-source = "git+https://github.com/Detegr/cbqn-sys.git#e9d4841bf3592fc96ce995cd4848c40c2abec588"
+version = "0.0.6"
+source = "git+https://github.com/Detegr/cbqn-sys.git#5e12cbb8bbd235e2429c717cc818e152e177b1d4"
 dependencies = [
  "bindgen",
  "fs_extra",

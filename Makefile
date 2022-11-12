@@ -1,28 +1,31 @@
--include helpfiles.mk
+HELP_FILES := $(patsubst BQN%,lsp/src%,$(subst BQN/help/README.md,,$(wildcard BQN/help/*.md)))
 
-all: ${HELP_FILES} target/debug/bqnlsp
+all: target/debug/bqnlsp
 
 PREFIX ?= output/
-install: target/debug/bqnlsp ${HELP_FILES}
+install: target/debug/bqnlsp
 	mkdir -p ${PREFIX}/BQN/src
 	cp target/debug/bqnlsp ${PREFIX}
-	cp -r help/ ${PREFIX}
 	cp -r BQN/src/* ${PREFIX}/BQN/src
 	# FIXME: howto do this properly??
 	cp $(shell find target/debug -name libcbqn.so | head -n1) ${PREFIX}
 
 clean:
 	-rm -rf ${PREFIX}
-	-rm -rf help
-	-rm -rf BQN
+	-rm -rf lsp/src/help/*.md
 
-BQN/src/c.bqn:
-	git submodule update --init --recursive
-
-target/debug/bqnlsp: $(wildcard lsp/src/*.rs)
+target/debug/bqnlsp: $(wildcard lsp/src/*.rs) ${HELP_FILES}
+	@if [ ! -d BQN ]; then \
+		echo "BQN directory not found"; \
+		echo "Try running \`git submodule init --update --recursive\`"; \
+		exit 1; \
+	fi
 	cargo build --manifest-path=lsp/Cargo.toml
 
 ${HELP_FILES}: BQN/src/c.bqn
-	cargo run --release --bin genhelp ./BQN ./help
+	cargo run --release --bin genhelp ./BQN ./lsp/src/help
 
 .PHONY: install
+
+# Disable implicit rules
+.SUFFIXES:

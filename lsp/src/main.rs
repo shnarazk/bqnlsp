@@ -1,13 +1,12 @@
 use cbqn::{eval, BQN};
 use dashmap::DashMap;
-use std::fs;
 use tower_lsp::jsonrpc::Result;
 use tower_lsp::lsp_types::*;
 use tower_lsp::{Client, LanguageServer, LspService, Server};
 
 mod bqn;
 mod diagnostics;
-mod doc;
+mod help;
 
 use diagnostics::get_diagnostics;
 
@@ -102,19 +101,12 @@ impl LanguageServer for Backend {
             Some(x) => x,
             None => return Ok(None),
         };
-        let doc = match doc::doc_file(c) {
+        let contents = match help::help_for_symbol(c) {
             Some(x) => x,
             None => return Ok(None),
         };
-        let contents = match fs::read_to_string(doc) {
-            Ok(x) => x,
-            Err(e) => {
-                eprintln!("{:?}", e);
-                return Ok(None);
-            }
-        };
         Ok(Some(Hover {
-            contents: HoverContents::Scalar(MarkedString::from_markdown(contents)),
+            contents: HoverContents::Scalar(MarkedString::from_markdown(contents.into())),
             range: None,
         }))
     }

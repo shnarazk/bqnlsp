@@ -14,7 +14,7 @@ clean:
 	-rm -rf ${PREFIX}
 	-rm -rf lsp/src/help/*.md
 
-target/debug/bqnlsp: $(wildcard lsp/src/*.rs) ${HELP_FILES}
+target/debug/bqnlsp: $(wildcard lsp/src/*.rs) ${HELP_FILES} Cargo.toml Cargo.lock
 	@if [ ! -d BQN ]; then \
 		echo "BQN directory not found"; \
 		echo "Try running \`git submodule init --update --recursive\`"; \

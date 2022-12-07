@@ -1,29 +1,36 @@
 {
-	"name": "bqnlsp",
-	"description": "BQN Language Server",
-	"author": "",
-	"license": "",
-	"version": "0.0.1",
+    "name": "bqnlsp",
+    "description": "BQN Language Server",
+    "author": "",
+    "license": "",
+    "version": "0.0.1",
     "main": "./out/extension",
     "activationEvents": [
         "onLanguage:bqn"
     ],
+    "contributes": {
+        "languages": [{
+            "id": "bqn",
+            "aliases": ["BQN"],
+            "extensions": [".bqn"]
+        }]
+    },
     "scripts": {
         "vscode:prepublish": "npm run compile",
         "compile": "tsc -b",
         "watch": "tsc -b -w",
         "lint": "eslint ./src --ext .ts,.tsx"
     },
-	"engines": {
-		"vscode": "^1.63.0"
-	},
-	"dependencies": {
-		"vscode-languageclient": "^7.0.0"
-	},
-	"devDependencies": {
+    "engines": {
+        "vscode": "^1.63.0"
+    },
+    "dependencies": {
+        "vscode-languageclient": "^7.0.0"
+    },
+    "devDependencies": {
         "@types/node": "^16.11.7",
-		"@types/vscode": "^1.63.0",
-		"@vscode/test-electron": "^2.1.2",
+        "@types/vscode": "^1.63.0",
+        "@vscode/test-electron": "^2.1.2",
         "typescript": "^4.8.4"
-	}
+    }
 }

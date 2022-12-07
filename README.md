@@ -1,4 +1,4 @@
-# BQN Language Server
+# [BQN Language Server](https://sr.ht/~detegr/bqnlsp/)
 
 ## Building
 

@@ -9,7 +9,7 @@ edition = "2021"
 dashmap = "5.4.0"
 tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread", "io-std"] }
 tower-lsp = "0.17.0"
-cbqn = { git = "https://github.com/Detegr/cbqn-rs.git" }
+cbqn = "0.0.8"
 regex = "1.7.0"
 
 [build-dependencies]

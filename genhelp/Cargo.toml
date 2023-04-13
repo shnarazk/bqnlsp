@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 
-cbqn = { git = "https://github.com/Detegr/cbqn-rs.git" }
+cbqn = "0.0.8"

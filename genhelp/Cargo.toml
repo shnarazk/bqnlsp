@@ -7,4 +7,4 @@ edition = "2021"
 
 [dependencies]
 
-cbqn = "0.0.8"
+cbqn = { git = "https://github.com/Detegr/cbqn-rs.git", branch = "wasm" }

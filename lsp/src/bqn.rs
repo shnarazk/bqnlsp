@@ -8,6 +8,9 @@ pub enum BQNResult {
     EmptyProgram,
 }
 
+static GLYPHS_SRC: &str = include_str!(concat!(env!("BQN_PATH"), "src/glyphs.bqn"));
+static COMPILER_SRC: &str = include_str!(concat!(env!("BQN_PATH"), "src/c.bqn"));
+
 #[allow(unused)]
 #[derive(Debug)]
 pub struct CompilerResult {
@@ -24,18 +27,15 @@ pub fn compile(code: &str) -> BQNResult {
         return BQNResult::EmptyProgram;
     }
 
-    let mut exe_dir = std::env::current_exe().unwrap();
-    exe_dir.pop();
-    let bqn_src_dir = exe_dir.join("BQN").join("src");
-    let glyphs = BQN!(
-        "•Import",
-        bqn_src_dir.join("glyphs.bqn").display().to_string()
-    );
-    let compiler = BQN!(
-        glyphs.clone(),
-        r#"•Import"#,
-        bqn_src_dir.join("c.bqn").display().to_string()
-    );
+    let glyphs = eval(GLYPHS_SRC);
+    let glyph_strs = glyphs
+        .to_bqnvalue_vec()
+        .into_iter()
+        .map(|v| format!(r#""{}""#, v.to_string()))
+        .collect::<Vec<String>>()
+        .join("‿");
+    let compiler_src = COMPILER_SRC.replace("•args", &glyph_strs);
+    let compiler = eval(&compiler_src);
     let compiler = BQN!("{𝕏⎊{𝕊: •CurrentError@}}", compiler);
     let prims_system = BQN!("{(∾•BQN∘⋈¨¨𝕩)‿(•BQN¨'•'⊸∾¨)}", glyphs);
     let out = compiler.call2(&prims_system, &BQNValue::from(code));

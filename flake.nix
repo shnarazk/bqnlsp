@@ -91,22 +91,18 @@
             pname = "bqnlsp";
             root = ./.;
             buildInputs = [
+              bqn
               libcbqn
               packages.genhelp
             ];
             cargoBuildOptions = x: x ++ [ "-p" "bqnlsp" ];
             cargoTestOptions = x: x ++ [ "-p" "bqnlsp" ];
             RUSTFLAGS = "-L ${libcbqn}";
+            BQNLSP_BQN_PATH = "${bqn}/";
 
             overrideMain = x: x // {
               preBuild = ''
                 ${packages.genhelp}/bin/genhelp ${bqn} ./lsp/src/help
-              '';
-
-              postInstall = ''
-                # TODO: this path isn't good
-                mkdir -p $out/bin/BQN
-                cp -r ${bqn}/src $out/bin/BQN
               '';
             };
           };

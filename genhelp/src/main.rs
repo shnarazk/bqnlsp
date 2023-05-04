@@ -1,6 +1,7 @@
+use anyhow::Result;
 use std::{
     fs,
-    io::{self, BufRead, BufReader, BufWriter, Write},
+    io::{BufRead, BufReader, BufWriter, Write},
     path::PathBuf,
 };
 
@@ -11,12 +12,12 @@ fn usage() -> ! {
     std::process::exit(1);
 }
 
-fn handle_dir(help_path: PathBuf, output_path: PathBuf) -> io::Result<()> {
+fn handle_dir(help_path: PathBuf, output_path: PathBuf) -> Result<()> {
     for entry in fs::read_dir(&help_path)? {
         let name = entry?.file_name();
         if let Ok(name) = name.into_string() {
             if name.ends_with(".md") {
-                let repl = BQN!(r#"•ReBQN {repl⇐"strict"}"#);
+                let repl = BQN!(r#"•ReBQN {repl⇐"strict"}"#)?;
                 let f = BufReader::new(fs::File::open(help_path.join(&name))?);
                 let mut outf = BufWriter::new(fs::File::create(output_path.join(name))?);
                 let mut skipnext = false;
@@ -48,8 +49,8 @@ fn handle_dir(help_path: PathBuf, output_path: PathBuf) -> io::Result<()> {
                             repl.clone(),
                             "{•Fmt 𝕎𝕩}⎊{𝕊: (⊑·/(@+10)⊸=)⊸↑ ∾(•CurrentError@)‿(@+10)}",
                             bqn_code
-                        )
-                        .to_string();
+                        )?
+                        .to_string()?;
 
                         if !inside_code_block {
                             inside_code_block = true;

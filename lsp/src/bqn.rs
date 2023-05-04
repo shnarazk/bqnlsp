@@ -1,4 +1,5 @@
 use cbqn::{eval, BQNType, BQNValue, BQN};
+use once_cell::sync::OnceCell;
 use regex::Regex;
 
 #[derive(Debug)]
@@ -7,6 +8,10 @@ pub enum BQNResult {
     Compiled(CompilerResult),
     EmptyProgram,
 }
+
+static GLYPHS_SRC: &str = include_str!(concat!(env!("BQN_PATH"), "src/glyphs.bqn"));
+static COMPILER_SRC: &str = include_str!(concat!(env!("BQN_PATH"), "src/c.bqn"));
+static COMPILER: OnceCell<(BQNValue, BQNValue)> = OnceCell::new();
 
 #[allow(unused)]
 #[derive(Debug)]
@@ -19,37 +24,39 @@ pub struct CompilerResult {
     tokens: (Vec<f64>, Vec<f64>, Vec<BQNValue>, Vec<f64>, Vec<f64>),
 }
 
-pub fn compile(code: &str) -> BQNResult {
+pub fn compile(code: &str) -> Result<BQNResult, cbqn::Error> {
     if code.is_empty() || code.chars().all(char::is_whitespace) {
-        return BQNResult::EmptyProgram;
+        return Ok(BQNResult::EmptyProgram);
     }
 
-    let mut exe_dir = std::env::current_exe().unwrap();
-    exe_dir.pop();
-    let bqn_src_dir = exe_dir.join("BQN").join("src");
-    let glyphs = BQN!(
-        "•Import",
-        bqn_src_dir.join("glyphs.bqn").display().to_string()
-    );
-    let compiler = BQN!(
-        glyphs.clone(),
-        r#"•Import"#,
-        bqn_src_dir.join("c.bqn").display().to_string()
-    );
-    let compiler = BQN!("{𝕏⎊{𝕊: •CurrentError@}}", compiler);
-    let prims_system = BQN!("{(∾•BQN∘⋈¨¨𝕩)‿(•BQN¨'•'⊸∾¨)}", glyphs);
-    let out = compiler.call2(&prims_system, &BQNValue::from(code));
-    let res = out.to_bqnvalue_vec();
+    let (compiler, prims) = COMPILER.get_or_init(|| {
+        let glyphs = eval(GLYPHS_SRC).unwrap();
+        let glyph_strs = glyphs
+            .to_bqnvalue_vec()
+            .unwrap()
+            .into_iter()
+            .map(|v| format!(r#""{}""#, v.to_string().unwrap()))
+            .collect::<Vec<String>>()
+            .join("‿");
+        let compiler_src = COMPILER_SRC.replace("•args", &glyph_strs);
+        let compiler = eval(&compiler_src).unwrap();
+        let compiler = BQN!("{𝕏⎊{𝕊: •CurrentError@}}", compiler).unwrap();
+        let prims_system = BQN!(r#"{(∾•BQN∘⋈¨¨𝕩)‿(""‿"."‿""⊸•BQN¨'•'⊸∾¨)}"#, glyphs).unwrap();
+
+        (compiler, prims_system)
+    });
+    let out = compiler.call2(prims, &BQNValue::from(code))?;
+    let res = out.to_bqnvalue_vec()?;
 
     let invalid_program = res.len() == 2 || res[0].bqn_type() == BQNType::Character;
     if invalid_program {
         let span = match res[0].bqn_type() {
             BQNType::Number => {
-                let v = res[0].to_f64();
+                let v = res[0].to_f64()?;
                 vec![v, v]
             }
             BQNType::Character => {
-                let error = out.to_string();
+                let error = out.to_string()?;
                 let words = error.split(' ').collect::<Vec<_>>();
                 let mut span = vec![0, 0];
                 if let Some(w) = words.iter().next_back() {
@@ -59,63 +66,63 @@ pub fn compile(code: &str) -> BQNResult {
                         }
                     }
                 }
-                return BQNResult::Error { span, error };
+                return Ok(BQNResult::Error { span, error });
             }
-            _ => res[0].to_f64_vec(),
+            _ => res[0].to_f64_vec()?,
         };
 
-        let error = res[1].to_string();
-        BQNResult::Error {
+        let error = res[1].to_string()?;
+        Ok(BQNResult::Error {
             span: span.into_iter().map(|v| v as u32).collect(),
             error,
-        }
+        })
     } else {
-        let bytecode = res[0].to_f64_vec();
-        let constants = res[1].to_bqnvalue_vec();
+        let bytecode = res[0].to_f64_vec()?;
+        let constants = res[1].to_bqnvalue_vec()?;
 
         let blocks = res[2]
-            .to_bqnvalue_vec()
+            .to_bqnvalue_vec()?
             .into_iter()
-            .map(|block| block.to_bqnvalue_vec())
+            .map(|block| block.to_bqnvalue_vec().unwrap())
             .collect::<Vec<_>>();
 
         let bodies = res[3]
-            .to_bqnvalue_vec()
+            .to_bqnvalue_vec()?
             .into_iter()
             .map(|v| {
-                let b = v.to_bqnvalue_vec();
+                let b = v.to_bqnvalue_vec().unwrap();
                 (
-                    b[0].to_f64(),
-                    b[1].to_f64(),
-                    b[2].to_f64_vec(),
-                    b[3].to_f64_vec(),
+                    b[0].to_f64().unwrap(),
+                    b[1].to_f64().unwrap(),
+                    b[2].to_f64_vec().unwrap(),
+                    b[3].to_f64_vec().unwrap(),
                 )
             })
             .collect::<Vec<_>>();
 
         let locs = res[4]
-            .to_bqnvalue_vec()
+            .to_bqnvalue_vec()?
             .into_iter()
-            .map(|v| v.to_f64_vec())
+            .map(|v| v.to_f64_vec().unwrap())
             .collect::<Vec<_>>();
 
-        let tokens = res[5].to_bqnvalue_vec();
+        let tokens = res[5].to_bqnvalue_vec()?;
         let tokens = (
-            tokens[0].to_f64_vec(),
-            tokens[1].to_f64_vec(),
-            tokens[2].to_bqnvalue_vec(),
-            tokens[3].to_f64_vec(),
-            tokens[4].to_f64_vec(),
+            tokens[0].to_f64_vec()?,
+            tokens[1].to_f64_vec()?,
+            tokens[2].to_bqnvalue_vec()?,
+            tokens[3].to_f64_vec()?,
+            tokens[4].to_f64_vec()?,
         );
 
-        BQNResult::Compiled(CompilerResult {
+        Ok(BQNResult::Compiled(CompilerResult {
             bytecode,
             constants,
             blocks,
             bodies,
             locs,
             tokens,
-        })
+        }))
     }
 }
 

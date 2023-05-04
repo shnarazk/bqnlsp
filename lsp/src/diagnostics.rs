@@ -2,8 +2,9 @@ use crate::bqn::{self, BQNResult};
 use tower_lsp::lsp_types::*;
 
 pub fn get_diagnostics(text: &str) -> Vec<Diagnostic> {
-    if let BQNResult::Error { span, error } = bqn::compile(text) {
-        span.chunks(2)
+    match bqn::compile(text) {
+        Ok(BQNResult::Error { span, error }) => span
+            .chunks(2)
             .map(|r| {
                 let span_char_count = if r.len() == 1 {
                     1
@@ -42,8 +43,11 @@ pub fn get_diagnostics(text: &str) -> Vec<Diagnostic> {
                     error.clone(),
                 )
             })
-            .collect::<Vec<_>>()
-    } else {
-        vec![]
+            .collect::<Vec<_>>(),
+        Ok(_) => vec![],
+        Err(e) => {
+            eprintln!("{}", e);
+            vec![]
+        }
     }
 }

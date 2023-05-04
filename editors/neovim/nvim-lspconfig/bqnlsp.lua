@@ -1,19 +1,22 @@
-local util = require 'lspconfig.util'
+local configs = require('lspconfig.configs')
+local util = require('lspconfig.util')
 
-return {
-  default_config = {
-    cmd = { 'bqnlsp' },
-    cmd_env = {},
-    filetypes = { 'bqn' },
-    root_dir = util.find_git_ancestor,
-    single_file_support = true,
-  },
-  docs = {
-    description = [[
-    BQN Language Server
-]],
+if not configs.bqnlsp then
+  configs.bqnlsp = {
     default_config = {
-      root_dir = [[util.find_git_ancestor]],
+      cmd = { 'bqnlsp' },
+      cmd_env = {},
+      filetypes = { 'bqn' },
+      root_dir = util.find_git_ancestor,
+      single_file_support = false,
     },
-  },
-}
+    docs = {
+      description = [[
+      BQN Language Server
+  ]],
+      default_config = {
+        root_dir = [[util.find_git_ancestor]],
+      },
+    },
+  }
+end

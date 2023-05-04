@@ -20,9 +20,10 @@ struct Backend {
 impl Backend {
     fn new(client: Client) -> Backend {
         let system_values = BQN!("{𝕩∾(-⟜32⌾(1⊸⊑)¨𝕩)} '•'⊸∾¨ •listsys")
-            .to_bqnvalue_vec()
+            .and_then(|v| v.to_bqnvalue_vec())
+            .unwrap()
             .into_iter()
-            .map(|v| CompletionItem::new_simple(v.to_string(), "System value".into()))
+            .map(|v| CompletionItem::new_simple(v.to_string().unwrap(), "System value".into()))
             .collect();
 
         Backend {

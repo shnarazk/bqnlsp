@@ -11,6 +11,7 @@ tokio = { version = "1.21.2", features = ["macros", "rt-multi-thread", "io-std"]
 tower-lsp = "0.17.0"
 cbqn = { git = "https://github.com/Detegr/cbqn-rs.git", branch = "wasm" }
 regex = "1.7.0"
+once_cell = "1.17.1"
 
 [build-dependencies]
 fs_extra = "1.2.0"

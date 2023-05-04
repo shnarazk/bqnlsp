@@ -37,7 +37,7 @@ pub fn compile(code: &str) -> BQNResult {
     let compiler_src = COMPILER_SRC.replace("•args", &glyph_strs);
     let compiler = eval(&compiler_src);
     let compiler = BQN!("{𝕏⎊{𝕊: •CurrentError@}}", compiler);
-    let prims_system = BQN!("{(∾•BQN∘⋈¨¨𝕩)‿(•BQN¨'•'⊸∾¨)}", glyphs);
+    let prims_system = BQN!(r#"{(∾•BQN∘⋈¨¨𝕩)‿(""‿"."‿""⊸•BQN¨'•'⊸∾¨)}"#, glyphs);
     let out = compiler.call2(&prims_system, &BQNValue::from(code));
     let res = out.to_bqnvalue_vec();
 

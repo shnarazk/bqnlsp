@@ -117,7 +117,12 @@
 
         # nix develop
         devShell = pkgs.mkShell {
+          RUSTFLAGS = "-L ${libcbqn}";
           inputsFrom = builtins.attrValues self.packages.${system};
+          nativeBuildInputs = [
+            pkgs.rust-bin.stable.latest.default
+            pkgs.rust-analyzer
+          ];
         };
       }
     );

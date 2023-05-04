@@ -2,6 +2,7 @@
   description = "BQN LSP implementation";
 
   inputs = {
+    nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
     rust-overlay.url = "github:oxalica/rust-overlay";
     naersk.url = "github:nix-community/naersk";
@@ -27,54 +28,6 @@
             rev = "c76eeded5b0b39d06085f6f7a8f12456d4b01a30";
             sha256 = "sha256-I0TMERE0VK2NrbEvKmOfzQYK4UwaRbcNfA28XjmuFr0=";
           };
-          bytecode = pkgs.fetchFromGitHub {
-            name = "bqnlsp-cbqn-bytecode";
-            owner = "dzaima";
-            repo = "cbqnBytecode";
-            rev = "master";
-            sha256 = "sha256-IOhxcfGmpARiTdFMSpc+Rh8VXtasZdfP6vKJzULNxAg=";
-          };
-          cbqn-shared-object = if
-            pkgs.stdenv.hostPlatform.isDarwin then "libcbqn.dylib" else if
-            pkgs.stdenv.hostPlatform.isWindows then "cbqn.dll"
-            else "libcbqn.so";
-          libcbqn = pkgs.llvmPackages.stdenv.mkDerivation {
-            name = "bqnlsp-libcbqn";
-            src = pkgs.fetchFromGitHub {
-              owner = "dzaima";
-              repo = "CBQN";
-              rev = "v0.2.0";
-              sha256 = "sha256-M9GTsm65DySLcMk9QDEhImHnUvWtYGPwiG657wHg3KA=";
-            };
-
-            nativeBuildInputs = [
-              pkgs.bash
-              pkgs.coreutils
-            ];
-
-            buildInputs = [
-              pkgs.libffi
-            ];
-
-            dontConfigure = true;
-
-            preBuild = ''
-              mkdir -p build/bytecodeLocal/gen
-              cp -r ${bytecode}/gen/* build/bytecodeLocal/gen
-              patchShebangs build/build
-            '';
-
-            makeFlags = [
-              "shared-o3"
-            ];
-
-            installPhase = (if pkgs.stdenv.hostPlatform.isDarwin then ''
-              install_name_tool -id $out/${cbqn-shared-object} ${cbqn-shared-object}
-            '' else "") + ''
-              mkdir $out
-              mv ${cbqn-shared-object} $out
-            '';
-          };
       in
       rec {
         defaultPackage = packages.lsp;
@@ -82,22 +35,22 @@
           genhelp = naersk'.buildPackage {
             pname = "bqnlsp-genhelp";
             root = ./.;
-            buildInputs = [ libcbqn ];
+            buildInputs = [ pkgs.cbqn ];
             cargoBuildOptions = x: x ++ [ "-p" "genhelp" ];
             cargoTestOptions = x: x ++ [ "-p" "genhelp" ];
-            RUSTFLAGS = "-L ${libcbqn}";
+            RUSTFLAGS = "-L ${pkgs.cbqn}/lib";
           };
           lsp = naersk'.buildPackage {
             pname = "bqnlsp";
             root = ./.;
             buildInputs = [
               bqn
-              libcbqn
+              pkgs.cbqn
               packages.genhelp
             ];
             cargoBuildOptions = x: x ++ [ "-p" "bqnlsp" ];
             cargoTestOptions = x: x ++ [ "-p" "bqnlsp" ];
-            RUSTFLAGS = "-L ${libcbqn}";
+            RUSTFLAGS = "-L ${pkgs.cbqn}/lib";
             BQNLSP_BQN_PATH = "${bqn}/";
 
             overrideMain = x: x // {
@@ -117,7 +70,7 @@
 
         # nix develop
         devShell = pkgs.mkShell {
-          RUSTFLAGS = "-L ${libcbqn}";
+          RUSTFLAGS = "-L ${pkgs.cbqn}/lib";
           inputsFrom = builtins.attrValues self.packages.${system};
           nativeBuildInputs = [
             pkgs.rust-bin.stable.latest.default

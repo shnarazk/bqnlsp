@@ -30,8 +30,9 @@
           };
       in
       rec {
-        defaultPackage = packages.lsp;
+        # defaultPackage = packages.lsp;
         packages = {
+          default = packages.lsp;
           genhelp = naersk'.buildPackage {
             pname = "bqnlsp-genhelp";
             root = ./.;
@@ -62,21 +63,38 @@
         };
 
         # nix run
-        defaultApp = apps.lsp;
-        apps.lsp = flake-utils.lib.mkApp {
-          name = "bqnlsp";
-          drv = packages.lsp;
+        # defaultApp = apps.lsp;
+        # apps.lsp = flake-utils.lib.mkApp {
+        #   name = "bqnlsp";
+        #   drv = packages.lsp;
+        # };
+        apps = {
+          default = apps.lsp;
+          lsp = flake-utils.lib.mkApp {
+            name = "bqnlsp";
+            drv = packages.lsp;
+          };
         };
 
         # nix develop
-        devShell = pkgs.mkShell {
-          RUSTFLAGS = "-L ${pkgs.cbqn}/lib";
-          inputsFrom = builtins.attrValues self.packages.${system};
-          nativeBuildInputs = [
-            pkgs.rust-bin.stable.latest.default
-            pkgs.rust-analyzer
-          ];
+        devShells = {
+          default = pkgs.mkShell {
+            RUSTFLAGS = "-L ${pkgs.cbqn}/lib";
+            inputsFrom = builtins.attrValues self.packages.${system};
+            nativeBuildInputs = [
+              pkgs.rust-bin.stable.latest.default
+              pkgs.rust-analyzer
+            ];
+          };
         };
+        # devShell = pkgs.mkShell {
+        #   RUSTFLAGS = "-L ${pkgs.cbqn}/lib";
+        #   inputsFrom = builtins.attrValues self.packages.${system};
+        #   nativeBuildInputs = [
+        #     pkgs.rust-bin.stable.latest.default
+        #     pkgs.rust-analyzer
+        #   ];
+        # };
       }
     );
 }

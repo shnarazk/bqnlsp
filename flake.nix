@@ -1,6 +1,5 @@
 {
   description = "BQN LSP implementation";
-
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     flake-utils.url = "github:numtide/flake-utils";
@@ -30,7 +29,6 @@
           };
       in
       rec {
-        # defaultPackage = packages.lsp;
         packages = {
           default = packages.lsp;
           genhelp = naersk'.buildPackage {
@@ -43,6 +41,8 @@
           };
           lsp = naersk'.buildPackage {
             pname = "bqnlsp";
+            version = "20230507-1";
+            name = "${pname}-${version}";
             root = ./.;
             buildInputs = [
               bqn
@@ -59,15 +59,17 @@
                 ${packages.genhelp}/bin/genhelp ${bqn} ./lsp/src/help
               '';
             };
+            meta = with lib; {
+              homepage = "https://git.sr.ht/~detegr/bqnlsp";
+              description = "BQN Language Server";
+              license = licenses.gpl3Plus;
+              maintainers = with maintainers; [ detegr ];
+              platforms = platforms.all;
+            };
           };
         };
 
         # nix run
-        # defaultApp = apps.lsp;
-        # apps.lsp = flake-utils.lib.mkApp {
-        #   name = "bqnlsp";
-        #   drv = packages.lsp;
-        # };
         apps = {
           default = apps.lsp;
           lsp = flake-utils.lib.mkApp {
@@ -87,14 +89,6 @@
             ];
           };
         };
-        # devShell = pkgs.mkShell {
-        #   RUSTFLAGS = "-L ${pkgs.cbqn}/lib";
-        #   inputsFrom = builtins.attrValues self.packages.${system};
-        #   nativeBuildInputs = [
-        #     pkgs.rust-bin.stable.latest.default
-        #     pkgs.rust-analyzer
-        #   ];
-        # };
       }
     );
 }

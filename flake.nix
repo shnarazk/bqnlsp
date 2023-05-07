@@ -42,7 +42,7 @@
           lsp = naersk'.buildPackage {
             pname = "bqnlsp";
             version = "20230507-1";
-            name = "${packages.lsp.pname}-${packages.lsp.version}";
+            # name = "${packages.lsp.pname}-${packages.lsp.version}";
             root = ./.;
             buildInputs = [
               bqn

@@ -33,6 +33,8 @@
           default = packages.lsp;
           genhelp = naersk'.buildPackage {
             pname = "bqnlsp-genhelp";
+            version = "20230507-1";
+            name = "${packages.genhelp.pname}";
             root = ./.;
             buildInputs = [ pkgs.cbqn ];
             cargoBuildOptions = x: x ++ [ "-p" "genhelp" ];
@@ -42,7 +44,7 @@
           lsp = naersk'.buildPackage {
             pname = "bqnlsp";
             version = "20230507-1";
-            # name = "${packages.lsp.pname}-${packages.lsp.version}";
+            name = "${packages.lsp.pname}";
             root = ./.;
             buildInputs = [
               bqn

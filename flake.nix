@@ -42,7 +42,7 @@
           lsp = naersk'.buildPackage {
             pname = "bqnlsp";
             version = "20230507-1";
-            name = "${pname}-${version}";
+            name = "${packages.lsp.pname}-${packages.lsp.version}";
             root = ./.;
             buildInputs = [
               bqn
@@ -59,7 +59,7 @@
                 ${packages.genhelp}/bin/genhelp ${bqn} ./lsp/src/help
               '';
             };
-            meta = with lib; {
+            meta = with nixpkgs.lib; {
               homepage = "https://git.sr.ht/~detegr/bqnlsp";
               description = "BQN Language Server";
               license = licenses.gpl3Plus;
